@@ -1,0 +1,783 @@
+{
+  "name": "Agente Clinica",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Agente_agendamento",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -304
+      ],
+      "id": "c3899fc8-b7b2-4eff-9f08-4c248b2f13ca",
+      "name": "Webhook",
+      "webhookId": "dc580699-e76b-4351-a44f-f16dc4210820"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6cecfa6e-a641-4b0d-ad9b-e8eba7edf6bb",
+              "name": "body.data.key.remoteJid",
+              "value": "={{ $json.body.data.key.remoteJid }}",
+              "type": "string"
+            },
+            {
+              "id": "b7861803-6dcc-4f27-a1f2-a6f2363ce405",
+              "name": "tipo_menssagem",
+              "value": "={{ $json.body.data.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "32ddb029-10d9-4606-b367-e48010a4d0e4",
+              "name": "menssagem_usuario",
+              "value": "={{ $json.body.data.message.conversation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -144,
+        -80
+      ],
+      "id": "1f9ffdd9-d37a-4a82-bed4-182de1be9668",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tipo_menssagem }}",
+                    "rightValue": "conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1a8f49f9-30b3-403a-b522-de2b2f353c88"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "464884f3-fc40-4050-a8b9-8a207b81389d",
+                    "leftValue": "={{ $json.tipo_menssagem }}",
+                    "rightValue": "audioMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1e77a345-dc8b-4936-a08e-08fc334fc1b2",
+                    "leftValue": "={{ $json.tipo_menssagem }}",
+                    "rightValue": "imageMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "571f499e-7aea-4866-85c7-372b524fed7b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "=define",
+        "text": "=O usuário mandou a seguinte mensagem ou descrição da mensagem:{{ $json.menssagem_usuario }}\nTipo de mensagem:{{ $json.tipo_menssagem }}\nData atual: {{ new Date().toDateTime().toISO() }} - {{ [\"domingo\", \"segunda-feira\", \"terça-feira\", \"quarta-feira\", \"quinta-feira\", \"sexta-feira\", \"sábado\"][$now.extract(\"weekday\") % 7] }}\nTelefone do Cliente: {{ $json.body.data.key.remoteJid }}\n\nSiga todas as diretrizes e regras do System  Message",
+        "options": {
+          "systemMessage": "=# DATAS RELATIVAS\n\nHora e data atual {{ $now }}\n\nUse a data e hora atual fornecidas no início deste prompt como referência.\nAo interpretar datas relativas:\n\n- \"segunda-feira\" = a próxima ocorrência de segunda-feira a partir da data atual.\n- \"próxima segunda-feira\" = a próxima segunda-feira após hoje.\n- Nunca invente uma data.\n- Sempre calcule a data correta com base em {{ $now }}.\n- Antes de confirmar um agendamento, verifique se a data calculada corresponde ao dia da semana informado pelo paciente.\n\nExemplo:\nSe hoje for sábado, 08/08/2026:\n- amanhã = domingo, 09/08/2026\n- segunda-feira = segunda, 10/08/2026\n- próxima segunda-feira = segunda, 10/08/2026\n\nSe houver qualquer dúvida sobre a data pretendida, pergunte ao paciente antes de agendar.\n\n\n# FUNÇÃO\n\nVocê é a secretária da Dra. Byanka Paz, Voce chama Maria responsável pelo atendimento, agendamento, reagendamento e cancelamento de consultas e serviços da Clínica Dra. Byanka Paz. Horario de Atédimento das 9AM até as 18:00, fecha para almoço das 12:00 as 13:00\n\nAtenda de forma natural, educada, profissional e objetiva. Analise o histórico da conversa antes de responder. Nunca repita informações ou perguntas que o paciente já forneceu. Pergunte somente o próximo dado necessário.\n\n# DADOS DO PACIENTE\n\nTelefone: {{ $json.body.data.key.remoteJid }}\n\nPara um novo agendamento, obtenha:\n\n* Nome completo\n* E-mail\n* Data\n* Horário\n* Serviço: Consulta médica, Tratamento Capilar ou Botox\n\n# REGRAS DE ATENDIMENTO\n\n* Aproveite todas as informações já fornecidas pelo paciente.\n* Não peça novamente dados que já estejam no histórico.\n* Se o paciente fornecer vários dados de uma vez, aceite todos e peça apenas o que faltar.\n* Apresente os serviços quando o paciente perguntar o que a clínica oferece.\n* Seja breve e natural.\n* Nunca repita a apresentação inicial em cada mensagem.\n\n# REGRAS MÉDICAS\n\nVocê não é médica.\n\n* Nunca faça diagnósticos.\n* Nunca interprete exames.\n* Nunca prescreva medicamentos ou tratamentos.\n* Para perguntas clínicas, responda:\n  \"Apenas o médico poderá responder essa pergunta durante sua consulta.\"\n\n# FERRAMENTAS\n\n## #Listar\n\nLista as consultas existentes.\n\nÉ OBRIGATÓRIO usar #Listar antes de:\n\n* confirmar se um horário está disponível;\n* oferecer horários disponíveis;\n* realizar um novo agendamento;\n* verificar disponibilidade para reagendamento.\n\nAs consultas são de 1 hora.\n\nNunca invente disponibilidade.\n\nSe o horário solicitado estiver ocupado, informe que não está disponível e ofereça outro horário livre.\n\nSe o paciente pedir horários disponíveis, consulte #Listar e ofereça somente horários realmente livres.\n\n## #Agendar\n\nCria uma nova consulta.\n\nAntes de usar #Agendar:\n\n1. Consulte #Listar.\n2. Confirme que o horário está livre.\n3. Confirme com o paciente nome, e-mail, data, horário e serviço.\n4. Só então use #Agendar.\n\nNunca confirme um agendamento sem o retorno de sucesso da ferramenta.\n\n## #Reagendar\n\nAltera uma consulta existente.\n\nAntes de usar:\n\n1. Consulte #Listar.\n2. Encontre a consulta do paciente e obtenha seu ID.\n3. Verifique a disponibilidade da nova data e horário.\n4. Use #Reagendar.\n\nNunca invente o ID.\n\n## #Cancelar\n\nCancela uma consulta existente.\n\nAntes de usar:\n\n1. Consulte #Listar.\n2. Encontre a consulta do paciente e obtenha seu ID.\n3. Use #Cancelar.\n\nNunca invente o ID.\n\n# AGENDAMENTO\n\nSe o paciente já tiver uma consulta e quiser marcar outra, informe que ele já possui uma consulta e pergunte se deseja reagendar ou cancelar a existente.\n\nSe o paciente solicitar um horário diferente dos horários anteriormente oferecidos, consulte #Listar novamente.\n\nNunca aceite um horário apenas porque o paciente o solicitou. Sempre verifique a disponibilidade.\n\nAntes de agendar, confirme:\n\nNome: [nome]\nData: [data]\nHorário: [horário]\nServiço: [serviço]\nE-mail: [e-mail]\n\nPergunte se está tudo correto.\n\nSomente após a confirmação do paciente utilize #Agendar.\n\n# CONVERSA NATURAL\n\nExemplo:\n\nPaciente:\n\"Quero marcar uma consulta.\"\n\nPergunte somente:\n\"Claro. Qual é o seu nome completo?\"\n\nSe o paciente responder com nome, e-mail, serviço e data de uma vez, não pergunte novamente essas informações. Solicite somente o horário que estiver faltando.\n\nApós um agendamento realizado com sucesso, informe de forma breve:\n\n* Data\n* Horário\n* Serviço\n* Local\n* E-mail\n\nSe uma ferramenta retornar erro, não diga que o procedimento foi concluído.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1504,
+        -336
+      ],
+      "id": "873a5906-f93e-4827-bba3-5b2b25093e3a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        -16
+      ],
+      "id": "805e83d4-3e16-4e39-8a99-a30060efd47d",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "xXfnaubqNJuVeWgd",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=  {{ $json.body.data.key.remoteJid }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.6,
+      "position": [
+        1552,
+        -16
+      ],
+      "id": "cc9ddcee-af13-4ab4-951b-3d22f0d9ce5e",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "yrz5iP02gpBsqA9E",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "mathpachecco2@gmail.com",
+          "mode": "list",
+          "cachedResultName": "mathpachecco2@gmail.com"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1872,
+        -16
+      ],
+      "id": "448e0515-5cd2-4882-bc8e-f3061d5cd067",
+      "name": "Listar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "zRZxscQ0chDcumzM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "mathpachecco2@gmail.com",
+          "mode": "list",
+          "cachedResultName": "mathpachecco2@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', `Use o ID EXATO do evento retornado pela ferramenta #Listar. Nunca invente, altere ou substitua o ID. Antes de reagendar, obrigatoriamente consulte #Listar e identifique o evento correto do paciente.`, 'string') }}",
+        "updateFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2016,
+        -16
+      ],
+      "id": "e7b44b79-02ce-45ee-a141-58227f0ef384",
+      "name": "Reagendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "zRZxscQ0chDcumzM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "mathpachecco2@gmail.com",
+          "mode": "list",
+          "cachedResultName": "mathpachecco2@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', `Use o ID EXATO do evento retornado pela ferramenta #Listar. Nunca invente, altere ou substitua o ID. Antes de cancelar, obrigatoriamente consulte #Listar e identifique o evento que pertence ao paciente.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2176,
+        -16
+      ],
+      "id": "2dd4d7b1-b9f6-45a3-8ca9-26df63805c45",
+      "name": "Cancelar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "zRZxscQ0chDcumzM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "mathpachecco2@gmail.com",
+          "mode": "list",
+          "cachedResultName": "mathpachecco2@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `horário desejado, Data e horário exatos escolhidos pelo paciente para o início da consulta.`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `horário desejado + 1 hora, Exatamente 1 hora após o horário de início da consulta. Use a mesma data.`, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1728,
+        -16
+      ],
+      "id": "574f7138-c49f-4864-8096-7632aa17495a",
+      "name": "Agendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "zRZxscQ0chDcumzM",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "aulas-n8n",
+        "remoteJid": "={{ $('Webhook').item.json.body.data.key.remoteJid }}",
+        "messageText": "={{ $json.output }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        -288
+      ],
+      "id": "aa28f265-7434-4d45-8c3c-b098613dd915",
+      "name": "Enviar texto",
+      "credentials": {
+        "evolutionApi": {
+          "id": "uSxlP9uKMZddtvlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat-api",
+        "operation": "get-media-base64",
+        "instanceName": "aulas-n8n",
+        "messageId": "={{ $('Webhook').item.json.body.data.key.id }}",
+        "convertToMp4": true
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        528,
+        80
+      ],
+      "id": "18cd61aa-10a5-4dd0-bb0b-6a22a9215bab",
+      "name": "Obter media em base64",
+      "credentials": {
+        "evolutionApi": {
+          "id": "uSxlP9uKMZddtvlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data.base64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        80
+      ],
+      "id": "17443889-073b-46b1-ae74-1fda4a0adb8e",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.6-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.6-flash"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        80
+      ],
+      "id": "7f5c0a09-bbe1-4330-9976-d8543ed982ff",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "VBBcj6NfoTjTpVm7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "notes": "pt"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7a7b6bd4-2a5d-49ad-b49b-082012d0480b",
+              "name": "Menssagem_usuário",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        80
+      ],
+      "id": "a9d128fb-d3d0-437f-a8e4-4ae524a0f6ef",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "resource": "chat-api",
+        "operation": "get-media-base64",
+        "instanceName": "aulas-n8n",
+        "messageId": "={{ $('Webhook').item.json.body.data.key.id }}",
+        "convertToMp4": true
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        112,
+        544
+      ],
+      "id": "63ec3df9-06dd-431e-b700-2b8121d4892c",
+      "name": "Obter media em base",
+      "credentials": {
+        "evolutionApi": {
+          "id": "uSxlP9uKMZddtvlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data.base64",
+        "binaryPropertyName": "={{ $json.data.base64 }}",
+        "options": {
+          "fileName": "dados"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        544
+      ],
+      "id": "947ca614-00fe-4f04-9c5c-a4e491c21468",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "text": "Aqui esta uma mensagem enviada pelo usuário, descreva detalhadamente a imagem e qualquer texto visível. Coloque o maximo de detalhes e \"dados\".",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        560
+      ],
+      "id": "e7826015-d739-4e91-ad69-0dfe5c5dc60d",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "VBBcj6NfoTjTpVm7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b5b8a0ae-eabf-492d-81c6-c2d43130d3a9",
+              "leftValue": "={{ $json.body.data.key.fromMe }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        560
+      ],
+      "id": "58b880c9-be0f-4311-a74a-37a815374973",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "content": "Agent Clinic WorkFLOW",
+        "height": 800,
+        "width": 1024
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -448
+      ],
+      "id": "7ed9ad69-08ab-42e3-b285-05b4682d2b71",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Using the Evolution API for this flow",
+        "height": 800,
+        "width": 864,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -448
+      ],
+      "id": "8a0aac64-8d4d-47c2-8550-5a21d88f7d15",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "INITIAL OPERATION OF MY AGENT, INITIAL FLOW",
+        "height": 800,
+        "width": 928,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -448
+      ],
+      "id": "c0f18c85-a745-41f2-a46b-4dca812c1392",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obter media em base64",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reagendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter media em base64": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter media em base": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "555a2d9c-8d8c-4bf3-907c-f8e171e41b0f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ab73e3b4c1bd2a0ed2b1d1e2e82aebc92bc35eca0f7396b5c6341f4c50eb29fa"
+  },
+  "nodeGroups": [],
+  "id": "ZFYWUyGagOm1mOmm",
+  "tags": []
+}
