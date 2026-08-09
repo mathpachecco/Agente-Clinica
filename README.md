@@ -1,4 +1,6 @@
 # 🤖 Agente de IA para Clínica Médica
+<img width="1666" height="811" alt="Agente Clinica Dra" src="https://github.com/user-attachments/assets/e3f73f40-5083-4d41-8671-490bce146c14" />
+
 
 Agente de Inteligência Artificial desenvolvido para automatizar o atendimento de pacientes de uma clínica médica através do **WhatsApp**.
 
